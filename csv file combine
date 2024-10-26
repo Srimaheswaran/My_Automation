@@ -1,0 +1,36 @@
+
+import pandas as pd
+import glob
+import tkinter as tk
+from tkinter import filedialog
+import os
+
+def combine_csv_to_csv():
+    # Create Tkinter root window
+    root = tk.Tk()
+    root.withdraw()
+
+    # Ask the user to select multiple CSV files
+    file_paths = filedialog.askopenfilenames(title="Select CSV Files", filetypes=[("CSV Files", "*.csv")])
+
+    if len(file_paths) == 0:
+        print("No files selected. Exiting...")
+        return
+
+    combined_data = pd.DataFrame()  # Combined data will be stored in this DataFrame
+
+    for file_path in file_paths:
+        # Read each selected CSV file into a DataFrame
+        df = pd.read_csv(file_path)
+        # Append the data to the combined_data DataFrame
+        combined_data = combined_data.append(df, ignore_index=True)
+
+    save_directory = os.path.dirname(file_paths[0])
+    save_path = os.path.join(save_directory, "CombinedData.csv")
+
+    # Save the combined data as CSV
+    combined_data.to_csv(save_path, index=False)
+    print("Data has been combined and saved as CombinedData.csv.")
+
+combine_csv_to_csv()
+
