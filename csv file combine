@@ -1,4 +1,3 @@
-
 import pandas as pd
 import glob
 import tkinter as tk
@@ -17,13 +16,16 @@ def combine_csv_to_csv():
         print("No files selected. Exiting...")
         return
 
-    combined_data = pd.DataFrame()  # Combined data will be stored in this DataFrame
+    combined_data = []  # Combined data will be stored in this list
 
     for file_path in file_paths:
         # Read each selected CSV file into a DataFrame
         df = pd.read_csv(file_path)
-        # Append the data to the combined_data DataFrame
-        combined_data = combined_data.append(df, ignore_index=True)
+        # Append the DataFrame to the list
+        combined_data.append(df)
+
+    # Concatenate all DataFrames into one
+    combined_data = pd.concat(combined_data, ignore_index=True)
 
     save_directory = os.path.dirname(file_paths[0])
     save_path = os.path.join(save_directory, "CombinedData.csv")
@@ -33,4 +35,5 @@ def combine_csv_to_csv():
     print("Data has been combined and saved as CombinedData.csv.")
 
 combine_csv_to_csv()
+
 
