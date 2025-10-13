@@ -1,1 +1,68 @@
+import star.common.*;
+import java.io.*;
+import java.util.*;
 
+public class ExportParametersToCSV extends StarMacro {
+
+    @Override
+    public void execute() {
+        Simulation sim = getActiveSimulation();
+        String exportDir = sim.getSessionDir();  // Default to current sim folder
+        String fileName = "parameters_export.csv";
+        File outputFile = new File(exportDir, fileName);
+
+        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputFile)))) {
+            writer.println("Name,Value,Units,Type");
+
+            // 1️⃣ Export Global Parameters
+            Collection<ScalarGlobalParameter> scalarParams =
+                sim.get(GlobalParameterManager.class).getObjectsOf(ScalarGlobalParameter.class);
+            for (ScalarGlobalParameter param : scalarParams) {
+                String name = param.getPresentationName();
+                String value = Double.toString(param.getQuantity().getValue());
+                String units = param.getQuantity().getUnits().toString();
+                writer.println(escapeCSV(name) + "," + value + "," + escapeCSV(units) + ",Scalar");
+            }
+
+            // 2️⃣ Export String Parameters
+            Collection<StringGlobalParameter> stringParams =
+                sim.get(GlobalParameterManager.class).getObjectsOf(StringGlobalParameter.class);
+            for (StringGlobalParameter param : stringParams) {
+                String name = param.getPresentationName();
+                String value = param.getQuantity().getRawString();
+                writer.println(escapeCSV(name) + "," + escapeCSV(value) + ",,String");
+            }
+
+            // 3️⃣ Export Integer Parameters
+            Collection<IntegerGlobalParameter> intParams =
+                sim.get(GlobalParameterManager.class).getObjectsOf(IntegerGlobalParameter.class);
+            for (IntegerGlobalParameter param : intParams) {
+                String name = param.getPresentationName();
+                String value = Integer.toString(param.getQuantity().getRawValue());
+                writer.println(escapeCSV(name) + "," + value + ",,Integer");
+            }
+
+            // 4️⃣ Export Boolean Parameters
+            Collection<BooleanGlobalParameter> boolParams =
+                sim.get(GlobalParameterManager.class).getObjectsOf(BooleanGlobalParameter.class);
+            for (BooleanGlobalParameter param : boolParams) {
+                String name = param.getPresentationName();
+                String value = Boolean.toString(param.getQuantity().getRawValue());
+                writer.println(escapeCSV(name) + "," + value + ",,Boolean");
+            }
+
+            sim.println("✅ Parameters exported to: " + outputFile.getAbsolutePath());
+        } catch (IOException e) {
+            sim.println("❌ Error writing CSV: " + e.getMessage());
+        }
+    }
+
+    private String escapeCSV(String s) {
+        if (s == null) return "";
+        if (s.contains(",") || s.contains("\"") || s.contains("\n")) {
+            s = s.replace("\"", "\"\"");
+            s = "\"" + s + "\"";
+        }
+        return s;
+    }
+}
